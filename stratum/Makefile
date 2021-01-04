@@ -2,17 +2,17 @@
 CC=gcc
 
 CFLAGS= -g -march=native
-SQLFLAGS= `mysql_config --cflags --libs`
+SQLFLAGS= `pkg-config mariadb --cflags --libs`
 
 # Comment this line to disable address check on login,
 # if you use the auto exchange feature...
 CFLAGS += -DNO_EXCHANGE
 
 #CFLAGS=-c -O2 -I /usr/include/mysql
-LDFLAGS=-O2 `mysql_config --libs`
+LDFLAGS=-O2 `pkg-config mariadb --libs`
 
 LDLIBS=iniparser/libiniparser.a algos/libalgos.a sha3/libhash.a -lpthread -lgmp -lm -lstdc++
-LDLIBS+=-lmysqlclient
+LDLIBS+=-lmariadbclient
 
 SOURCES=stratum.cpp db.cpp coind.cpp coind_aux.cpp coind_template.cpp coind_submit.cpp util.cpp list.cpp \
 	rpc.cpp job.cpp job_send.cpp job_core.cpp merkle.cpp share.cpp socket.cpp coinbase.cpp \
@@ -21,7 +21,7 @@ SOURCES=stratum.cpp db.cpp coind.cpp coind_aux.cpp coind_template.cpp coind_subm
 
 CFLAGS += -DHAVE_CURL
 SOURCES += rpc_curl.cpp
-LDCURL = $(shell /usr/bin/pkg-config --static --libs libcurl)
+LDCURL = $(shell /usr/bin/pkg-config --libs libcurl)
 LDFLAGS += $(LDCURL)
 
 OBJECTS=$(SOURCES:.cpp=.o)

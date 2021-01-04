@@ -1,6 +1,6 @@
 
 #include "stratum.h"
-#include <mysql/mysqld_error.h>
+#include <mysqld_error.h>
 #include <signal.h>
 
 void db_reconnect(YAAMP_DB *db)

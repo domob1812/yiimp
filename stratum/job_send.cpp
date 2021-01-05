@@ -3,6 +3,8 @@
 
 static int g_job_next_id = 0;
 
+std::string build_xaya_real_header_prefix(YAAMP_JOB_TEMPLATE* templ);
+
 int job_get_jobid()
 {
 	CommonLock(&g_job_create_mutex);
@@ -28,6 +30,16 @@ static void job_mining_notify_buffer(YAAMP_JOB *job, char *buffer)
 			"\"%x\",\"%s\",\"%s\",\"%s\",\"%s\",[%s],\"%s\",\"%s\",\"%s\",true]}\n",
 			job->id, templ->prevhash_be, templ->extradata_be, templ->coinb1, templ->coinb2,
 			templ->txmerkles, templ->version, templ->nbits, templ->ntime);
+		return;
+	}
+
+	/* In Xaya, the client is actually working on the "fake header" part of the
+	   pow data.  The "coinbase" it is using is the real Xaya block header, and
+	   the extra nonces are appended to it at the end (in place of the nonce).  */
+	if (!strcmp(g_stratum_algo, "neoscrypt-xaya")) {
+		const std::string header_prefix = build_xaya_real_header_prefix(templ);
+		sprintf(buffer, "{\"id\":null,\"method\":\"mining.notify\",\"params\":[\"%x\",\"%064x\",\"%s\",\"\",[],\"%08x\",\"%s\",\"%s\",true]}\n",
+			job->id, 0, header_prefix.c_str(), 0, templ->nbits, templ->ntime);
 		return;
 	}
 

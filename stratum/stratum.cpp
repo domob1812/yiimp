@@ -108,12 +108,30 @@ static void neoscrypt_hash(const char* input, char* output, uint32_t len)
 	neoscrypt((unsigned char *)input, (unsigned char *)output, 0x80000620);
 }
 
+static void neoscrypt_xaya_hash(const char* input, char* output, const uint32_t len)
+{
+	if (len % 4 != 0)
+		yaamp_error("neoscrypt-xaya input has invalid length");
+
+	char temp[len];
+	for (size_t i = 0; i < len; i += 4)
+	{
+		temp[i] = input[i + 3];
+		temp[i + 1] = input[i + 2];
+		temp[i + 2] = input[i + 1];
+		temp[i + 3] = input[i];
+	}
+
+	neoscrypt_hash(temp, output, len);
+}
+
 YAAMP_ALGO g_algos[] =
 {
 	{"sha256", sha256_double_hash, 1, 0, 0},
 	{"scrypt", scrypt_hash, 0x10000, 0, 0},
 	{"scryptn", scryptn_hash, 0x10000, 0, 0},
 	{"neoscrypt", neoscrypt_hash, 0x10000, 0, 0},
+	{"neoscrypt-xaya", neoscrypt_xaya_hash, 0x10000, 0, 0},
 
 	{"c11", c11_hash, 1, 0, 0},
 	{"x11", x11_hash, 1, 0, 0},

@@ -101,6 +101,8 @@ void db_query(YAAMP_DB *db, const char *format, ...)
 
 void db_register_stratum(YAAMP_DB *db)
 {
+        return;
+
 	int pid = getpid();
 	int t = time(NULL);
 	if(!db) return;
@@ -114,6 +116,8 @@ void db_register_stratum(YAAMP_DB *db)
 
 void db_update_algos(YAAMP_DB *db)
 {
+        return;
+
 	int pid = getpid();
 	int fds = opened_files();
 	if(!db) return;
@@ -376,6 +380,8 @@ void db_update_coinds(YAAMP_DB *db)
 
 void db_update_remotes(YAAMP_DB *db)
 {
+        return;
+
 	if(!db) return;
 
 	db_query(db, "select id, speed/1000000, host, port, username, password, time, price, renterid from jobs where active and ready and algo='%s' order by time", g_stratum_algo);
@@ -507,6 +513,8 @@ void db_update_remotes(YAAMP_DB *db)
 
 void db_update_renters(YAAMP_DB *db)
 {
+        return;
+
 	if(!db) return;
 
 	db_query(db, "select id, balance, updated from renters");

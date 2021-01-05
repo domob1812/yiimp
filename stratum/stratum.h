@@ -31,7 +31,7 @@ using namespace std;
 #include "util.h"
 
 #define YAAMP_RESTARTDELAY		(24*60*60)
-#define YAAMP_MAXJOBDELAY		(2*60)
+#define YAAMP_MAXJOBDELAY		(200*60)
 #define CURL_RPC_TIMEOUT		(30)
 
 #define YAAMP_MS				1000

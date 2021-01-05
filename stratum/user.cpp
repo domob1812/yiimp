@@ -36,6 +36,8 @@ void db_check_coin_symbol(YAAMP_DB *db, char* symbol)
 
 void db_add_user(YAAMP_DB *db, YAAMP_CLIENT *client)
 {
+        return;
+
 	db_clean_string(db, client->username);
 	db_clean_string(db, client->password);
 	db_clean_string(db, client->version);

@@ -136,6 +136,76 @@ static void build_submit_values_decred(YAAMP_JOB_VALUES *submitvalues, YAAMP_JOB
 
 /////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Constructs the real coinbase transaction for a Xaya job.
+ */
+static std::string build_xaya_coinbase(YAAMP_JOB_TEMPLATE* templ)
+{
+	/* The real coinbase in Xaya has no extra nonce in it.  But we need to
+	   put 8 fake bytes there (value doesn't matter) in order to make the
+	   final transaction script length valid.  */
+	return templ->coinb1 + std::string(16, '8') + templ->coinb2;
+}
+
+/**
+ * Constructs the "real" Xaya block as hex string, except for the nonce
+ * field at the end.  This is what the client sees as "coinbase1", where
+ * the "coinbase2" on the client's end is "" and the extranonces
+ * will make up the missing nNonce field.
+ */
+std::string build_xaya_real_header_prefix(YAAMP_JOB_TEMPLATE* templ)
+{
+	const std::string coinbase = build_xaya_coinbase(templ);
+	const int coinbase_len = coinbase.size();
+
+	unsigned char coinbase_bin[1024];
+	memset(coinbase_bin, 0, 1024);
+	binlify(coinbase_bin, coinbase.c_str());
+
+	char doublehash[128];
+	memset(doublehash, 0, sizeof(doublehash));
+	sha256_double_hash_hex((char*)coinbase_bin, doublehash, coinbase_len/2);
+
+	string merkleroot = merkle_with_first(templ->txsteps, doublehash);
+#ifdef MERKLE_DEBUGLOG
+	printf("merkle root %s\n", merkleroot.c_str());
+#endif
+
+	return flip_bo(templ->version) + flip_bo(templ->prevhash_hex) + merkleroot
+		+ flip_bo(templ->ntime) + "00000000";
+}
+
+static void build_submit_values_xaya(YAAMP_JOB_VALUES *submitvalues, YAAMP_JOB_TEMPLATE *templ,
+	const char *nonce1, const char *nonce2, const char *ntime, const char *nonce)
+{
+	const std::string coinbase = build_xaya_coinbase(templ);
+	strcpy(submitvalues->coinbase, coinbase.c_str());
+
+	const std::string realHeader = build_xaya_real_header_prefix(templ) + nonce1 + nonce2;
+	unsigned char realHeader_bin[1024];
+	binlify(realHeader_bin, realHeader.c_str());
+
+	/* Build up the pow data.  This contains the nonce and time value from the client.  */
+	char doublehash[128];
+	memset(doublehash, 0, sizeof(doublehash));
+	sha256_double_hash_hex((char*)realHeader_bin, doublehash, realHeader.size()/2);
+
+	const std::string fakeHeader = std::string(72, '0') + doublehash
+					+ flip_bo(ntime) + flip_bo(templ->nbits) + flip_bo(nonce);
+
+	unsigned char fakeHeaderBin[1024];
+	binlify(fakeHeaderBin, fakeHeader.c_str());
+	const int header_len = fakeHeader.size()/2;
+	g_current_algo->hash_function((char*)fakeHeaderBin, (char*)submitvalues->hash_bin, header_len);
+	hexlify(submitvalues->hash_hex, submitvalues->hash_bin, 32);
+	string_be(submitvalues->hash_hex, submitvalues->hash_be);
+
+	const std::string fullHeader = realHeader + "02" + flip_bo(templ->nbits) + fakeHeader;
+	strcpy(submitvalues->header_be, fullHeader.c_str());
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
 static void client_do_submit(YAAMP_CLIENT *client, YAAMP_JOB *job, YAAMP_JOB_VALUES *submitvalues,
 	char *extranonce2, char *ntime, char *nonce, char *vote)
 {
@@ -421,6 +491,7 @@ bool client_submit(YAAMP_CLIENT *client, json_value *json_params)
 	}
 
 	bool is_decred = job->coind && !strcmp("DCR", job->coind->rpcencoding);
+	const bool is_xaya = job->coind && !strcmp("CHI", job->coind->symbol);
 
 	YAAMP_JOB_TEMPLATE *templ = job->templ;
 
@@ -490,6 +561,8 @@ bool client_submit(YAAMP_CLIENT *client, json_value *json_params)
 
 	if(is_decred)
 		build_submit_values_decred(&submitvalues, templ, client->extranonce1, extranonce2, ntime, nonce, vote, true);
+	else if (is_xaya)
+		build_submit_values_xaya(&submitvalues, templ, client->extranonce1, extranonce2, ntime, nonce);
 	else
 		build_submit_values(&submitvalues, templ, client->extranonce1, extranonce2, ntime, nonce);
 

@@ -30,6 +30,16 @@ bool client_subscribe(YAAMP_CLIENT *client, json_value *json_params)
 	client->extranonce2size_default = YAAMP_EXTRANONCE2_SIZE;
 	client->difficulty_actual = g_stratum_difficulty;
 
+	// In Xaya, both nonces share the nNonce field in the real
+	// block header.  Each has 16 bits.
+	if (g_current_algo->name && !strcmp(g_current_algo->name, "neoscrypt-xaya")) {
+		char* nonce1 = client->extranonce1_default;
+		if (strlen(nonce1) != 8)
+			yaamp_error("Invalid extranonce1 size");
+		strcpy(nonce1, nonce1 + 4);
+		client->extranonce2size_default = 2;
+	}
+
 	strcpy(client->extranonce1, client->extranonce1_default);
 	client->extranonce2size = client->extranonce2size_default;
 

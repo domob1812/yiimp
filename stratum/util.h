@@ -1,4 +1,3 @@
-
 struct YAAMP_CLIENT;
 
 struct COMMONLISTITEM
@@ -86,6 +85,7 @@ void ser_string_be2(const char *input, char *output, int len);
 
 void string_be(const char *input, char *output);
 void string_be1(char *s);
+std::string flip_bo(const std::string& str);
 
 bool ishexa(char *hex, int len);
 

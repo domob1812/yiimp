@@ -511,6 +511,13 @@ void string_be1(char *s)
 		memcpy(s + (len-i-1)*2, s2 + i*2, 2);
 }
 
+std::string flip_bo(const std::string& str)
+{
+	std::string res(str.size(), '\0');
+	string_be(str.c_str(), &res[0]);
+	return res;
+}
+
 uint64_t diff_to_target(double difficulty)
 {
 	if(!difficulty) return 0;

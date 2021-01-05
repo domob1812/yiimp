@@ -7,7 +7,7 @@ INSERT INTO `coins`
    `hassubmitblock`, `enable`, `auto_ready`, `algo`, `symbol`, `auxpow`,
    `hasmasternodes`, `usesegwit`)
   VALUES
-  (8888, 'Xaya', 'cf3J1QTXBD3DjdTcCeibGr8XRgGQq6wt3K',
-   'localhost', 18493, 'xaya', 'password',
+  (8888, 'Xaya', 'cSzBHTGZApeEKKdTPpWwsK4SMuo1krwZ1R',
+   'localhost', 18396, 'xaya', 'password',
    TRUE, TRUE, TRUE, 'neoscrypt-xaya', 'CHI', FALSE,
    FALSE, TRUE);
